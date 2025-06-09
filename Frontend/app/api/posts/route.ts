@@ -1,62 +1,17 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-options";
-import prisma from "@/lib/prisma";
+import axios from "axios";
 
 // GET /api/posts - List all posts
 export async function GET() {
   try {
     console.log("Fetching posts...");
-    const posts = await prisma.post.findMany({
-      include: {
-        user: {
-          select: {
-            id: true,
-            username: true,
-            avatar: true,
-          },
-        },
-        book: {
-          select: {
-            id: true,
-            title: true,
-            authors: true,
-            imageLinks: true,
-          },
-        },
-        likes: true,
-        comments: true,
-      },
-      orderBy: {
-        created_at: "desc",
-      },
-    });
+    const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/posts/`);
+    const posts = response.data;
 
     console.log(`Found ${posts.length} posts`);
-
-    // Transform the data to match our frontend expectations
-    const transformedPosts = posts.map((post) => ({
-      id: post.id,
-      user: {
-        id: post.user.id,
-        username: post.user.username,
-        avatar: post.user.avatar,
-      },
-      book: post.book ? {
-        id: post.book.id,
-        title: post.book.title,
-        authors: post.book.authors,
-        imageLinks: post.book.imageLinks,
-      } : null,
-      content: post.content,
-      image: post.image,
-      likes_count: post.likes.length,
-      comments_count: post.comments.length,
-      created_at: post.created_at.toISOString(),
-      updated_at: post.updated_at.toISOString(),
-    }));
-
-    return NextResponse.json(transformedPosts);
+    return NextResponse.json(posts);
   } catch (error) {
     console.error("Error fetching posts:", error);
     return NextResponse.json(
@@ -87,58 +42,22 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create the post
-    const post = await prisma.post.create({
-      data: {
+    // Create the post using your backend API
+    const response = await axios.post(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/posts/`,
+      {
         content,
         image,
-        userId: session.user.id,
-        bookId: bookId || null,
+        book_id: bookId,
       },
-      include: {
-        user: {
-          select: {
-            id: true,
-            username: true,
-            avatar: true,
-          },
+      {
+        headers: {
+          Authorization: `Bearer ${session.user.accessToken}`,
         },
-        book: {
-          select: {
-            id: true,
-            title: true,
-            authors: true,
-            imageLinks: true,
-          },
-        },
-        likes: true,
-        comments: true,
-      },
-    });
+      }
+    );
 
-    // Transform the response
-    const transformedPost = {
-      id: post.id,
-      user: {
-        id: post.user.id,
-        username: post.user.username,
-        avatar: post.user.avatar,
-      },
-      book: post.book ? {
-        id: post.book.id,
-        title: post.book.title,
-        authors: post.book.authors,
-        imageLinks: post.book.imageLinks,
-      } : null,
-      content: post.content,
-      image: post.image,
-      likes_count: post.likes.length,
-      comments_count: post.comments.length,
-      created_at: post.created_at.toISOString(),
-      updated_at: post.updated_at.toISOString(),
-    };
-
-    return NextResponse.json(transformedPost, { status: 201 });
+    return NextResponse.json(response.data, { status: 201 });
   } catch (error) {
     console.error("Error creating post:", error);
     return NextResponse.json(
