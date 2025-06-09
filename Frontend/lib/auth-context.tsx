@@ -40,6 +40,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Add this helper function at the top level
 const setAuthToken = (token: string | null) => {
+  if (typeof window === "undefined") return;
+
   if (token) {
     // Set in localStorage
     localStorage.setItem("access_token", token);
@@ -58,20 +60,46 @@ const setAuthToken = (token: string | null) => {
   }
 };
 
+// Helper function to safely access localStorage
+const getLocalStorageItem = (key: string): string | null => {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(key);
+};
+
+// Helper function to safely set localStorage
+const setLocalStorageItem = (key: string, value: string): void => {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(key, value);
+};
+
+// Helper function to safely remove from localStorage
+const removeLocalStorageItem = (key: string): void => {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(key);
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthResponse["user"] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasToken, setHasToken] = useState(false);
+  const [hasRefreshToken, setHasRefreshToken] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
+
+  // Update token state on mount
+  useEffect(() => {
+    setHasToken(!!getLocalStorageItem("access_token"));
+    setHasRefreshToken(!!getLocalStorageItem("refresh_token"));
+  }, []);
 
   // Add debug logging for user state changes
   useEffect(() => {
     console.log("Auth Context - User state updated:", {
       user,
-      hasToken: !!localStorage.getItem("access_token"),
-      hasRefreshToken: !!localStorage.getItem("refresh_token"),
+      hasToken,
+      hasRefreshToken,
     });
-  }, [user]);
+  }, [user, hasToken, hasRefreshToken]);
 
   // Update the checkAuth function to be more focused
   useEffect(() => {
@@ -80,8 +108,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const checkAuth = async () => {
       console.log("Auth Context - Starting initial auth check");
       try {
-        const token = localStorage.getItem("access_token");
-        const refreshToken = localStorage.getItem("refresh_token");
+        const token = getLocalStorageItem("access_token");
+        const refreshToken = getLocalStorageItem("refresh_token");
 
         console.log("Auth Context - Initial check:", {
           hasToken: !!token,
@@ -94,13 +122,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.log("Auth Context - No token found, clearing state");
           if (isMounted) {
             setUser(null);
-            setAuthToken(null); // This will clear both localStorage and cookies
+            setAuthToken(null);
+            setHasToken(false);
+            setHasRefreshToken(false);
             setIsLoading(false);
           }
           return;
         }
 
-        // Set the auth token (this will set both localStorage and cookies)
+        // Set the auth token
         setAuthToken(token);
 
         // If we already have valid user data, use it
@@ -185,13 +215,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             throw error;
           }
         }
+
+        // Update token states when setting new tokens
+        if (refreshToken) {
+          setLocalStorageItem("refresh_token", refreshToken);
+          setHasRefreshToken(true);
+        }
       } catch (error) {
         console.error("Auth Context - Auth check failed:", error);
         if (isMounted) {
           setUser(null);
-          localStorage.removeItem("access_token");
-          localStorage.removeItem("refresh_token");
+          removeLocalStorageItem("access_token");
+          removeLocalStorageItem("refresh_token");
           setAuthToken(null);
+          setHasToken(false);
+          setHasRefreshToken(false);
           setIsLoading(false);
         }
       }
@@ -219,11 +257,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error("No access token in response");
       }
 
-      // Store the tokens using our helper function
+      // Store the tokens using our helper functions
       setAuthToken(response.data.access);
       if (response.data.refresh) {
-        localStorage.setItem("refresh_token", response.data.refresh);
+        setLocalStorageItem("refresh_token", response.data.refresh);
+        setHasRefreshToken(true);
       }
+      setHasToken(true);
 
       // Fetch user data
       const userResponse = await api.get(AUTH_ENDPOINTS.ME);
@@ -260,43 +300,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       setIsLoading(true);
-      const refreshToken = localStorage.getItem("refresh_token");
-
-      if (refreshToken) {
-        try {
-          await api.post(AUTH_ENDPOINTS.LOGOUT, { refresh: refreshToken });
-        } catch (error) {
-          console.error("Logout API call failed:", error);
-        }
-      }
-
-      // Clear auth state using our helper function
-      setAuthToken(null);
-      localStorage.removeItem("refresh_token");
-      setUser(null);
-
-      toast({
-        title: "Success",
-        description: "Successfully logged out",
-      });
-
-      router.push("/auth/login");
-    } catch (error: unknown) {
-      console.error("Logout failed:", error);
-      // Even if the API call fails, we should still clear the local state
-      setAuthToken(null);
-      localStorage.removeItem("refresh_token");
-      setUser(null);
-
-      toast({
-        title: "Error",
-        description: "Failed to logout properly. Please try again.",
-        variant: "destructive",
-      });
-
-      router.push("/auth/login");
+      await api.post(AUTH_ENDPOINTS.LOGOUT);
+    } catch (error) {
+      console.error("Logout API call failed:", error);
     } finally {
+      setUser(null);
+      removeLocalStorageItem("access_token");
+      removeLocalStorageItem("refresh_token");
+      setAuthToken(null);
+      setHasToken(false);
+      setHasRefreshToken(false);
       setIsLoading(false);
+      router.push("/auth/login");
     }
   };
 
@@ -345,18 +360,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Update the isAuthenticated function
   const isAuthenticated = useCallback(() => {
-    const token = localStorage.getItem("access_token");
-    const hasUser = !!user && !!user.id;
-    const authState = {
-      hasToken: !!token,
-      hasUser,
-      userId: user?.id,
-      token: token ? "exists" : "missing",
-    };
-    console.log("Auth Context - Checking authentication:", authState);
-    // Only require token for initial auth check
-    return !!token;
-  }, [user]);
+    return !!user && hasToken;
+  }, [user, hasToken]);
 
   // Update the checkAuthStatus function
   const checkAuthStatus = useCallback(async () => {
@@ -436,7 +441,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Add a function to get the current auth token
   const getAuthToken = useCallback(() => {
-    return localStorage.getItem("access_token");
+    return getLocalStorageItem("access_token");
   }, []);
 
   // Update the context value to include the new function

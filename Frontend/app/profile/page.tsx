@@ -26,6 +26,7 @@ import {
   Loader2,
 } from "lucide-react";
 import Image from "next/image";
+import { Suspense } from "react";
 
 interface ProfileData {
   id: number;
@@ -62,7 +63,7 @@ interface ReviewCardProps {
   review: UserBookStatus;
 }
 
-export default function ProfilePage() {
+function ProfileContent() {
   const { user, isLoading: authLoading, isAuthenticated } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
@@ -80,6 +81,12 @@ export default function ProfilePage() {
   const [readingStatus, setReadingStatus] = useState<UserBookStatus[]>([]);
   const [currentlyReading, setCurrentlyReading] =
     useState<UserBookStatus | null>(null);
+  const [hasToken, setHasToken] = useState(false);
+
+  // Check for token on mount
+  useEffect(() => {
+    setHasToken(!!localStorage.getItem("access_token"));
+  }, []);
 
   // Simplified auth check useEffect
   useEffect(() => {
@@ -88,7 +95,7 @@ export default function ProfilePage() {
       isAuthenticated: isAuthenticated(),
       hasUser: !!user,
       userId: user?.id,
-      hasToken: !!localStorage.getItem("access_token"),
+      hasToken,
     });
 
     // If AuthContext is still doing its initial load, wait
@@ -98,8 +105,7 @@ export default function ProfilePage() {
     }
 
     // Check if we have a token first
-    const token = localStorage.getItem("access_token");
-    if (!token) {
+    if (!hasToken) {
       console.log("Profile - No token found, redirecting to login");
       toast({
         title: "Authentication required",
@@ -119,7 +125,7 @@ export default function ProfilePage() {
     // At this point we have both token and user data
     console.log("Profile - Auth check passed, user is authenticated");
     setIsLoadingData(false);
-  }, [authLoading, isAuthenticated, router, toast, user]);
+  }, [authLoading, isAuthenticated, router, toast, user, hasToken]);
 
   // Data fetching useEffect
   useEffect(() => {
@@ -198,15 +204,11 @@ export default function ProfilePage() {
   }, [user?.id, isAuthenticated, authLoading, toast]);
 
   // Updated loading condition
-  if (
-    authLoading ||
-    (!user && localStorage.getItem("access_token")) ||
-    isLoadingData
-  ) {
+  if (authLoading || (!user && hasToken) || isLoadingData) {
     console.log("Profile - Showing loading state:", {
       authLoading,
       hasUser: !!user,
-      hasToken: !!localStorage.getItem("access_token"),
+      hasToken,
       isLoadingData,
     });
     return (
@@ -222,7 +224,7 @@ export default function ProfilePage() {
   }
 
   // Final authentication check - only redirect if we have no token
-  if (!localStorage.getItem("access_token")) {
+  if (!hasToken) {
     console.log("Profile - No token found in final check, redirecting");
     return null; // Let the useEffect handle the redirect
   }
@@ -636,5 +638,24 @@ export default function ProfilePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen bg-gradient-to-br from-purple-50/30 to-[#D9BDF4]/10">
+          <Sidebar />
+          <div className="flex-1 p-6">
+            <div className="flex items-center justify-center h-full">
+              <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <ProfileContent />
+    </Suspense>
   );
 }
