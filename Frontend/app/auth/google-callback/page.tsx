@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/lib/hooks/use-toast";
 
-export default function GoogleCallback() {
+function GoogleCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
@@ -50,5 +50,24 @@ export default function GoogleCallback() {
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-800 mx-auto"></div>
       </div>
     </div>
+  );
+}
+
+export default function GoogleCallback() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-2xl font-semibold text-purple-800 mb-4">
+              Loading...
+            </h1>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-800 mx-auto"></div>
+          </div>
+        </div>
+      }
+    >
+      <GoogleCallbackContent />
+    </Suspense>
   );
 }
