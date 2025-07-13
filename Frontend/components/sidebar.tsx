@@ -23,10 +23,11 @@ import { useToast } from "@/components/ui/use-toast";
 const navigation = [
   { name: "Home", icon: Home, href: "/" },
   { name: "Discover", icon: Search, href: "/discover" },
-  { name: "Trending", icon: TrendingUp, href: "/trending" },
+  { name: "Posts", icon: MessageCircle, href: "/posts" },
+  // { name: "Trending", icon: TrendingUp, href: "/trending" },
   { name: "AI Recommender", icon: BookOpen, href: "http://127.0.0.1:7860" },
   { name: "Discussions", icon: MessageCircle, href: "http://localhost:5173" },
-  { name: "Lists", icon: MessageCircle, href: "/lists" },
+  // { name: "Lists", icon: MessageCircle, href: "/lists" },
 ];
 
 const authenticatedNavigation = [
@@ -58,7 +59,7 @@ export function Sidebar() {
   const navItems = user ? authenticatedNavigation : navigation;
 
   return (
-    <div className="flex h-screen w-64 flex-col border-r bg-card">
+    <div className="fixed top-0 left-0 h-screen w-64 flex-col border-r bg-card z-40">
       {/* Logo */}
       <div className="flex h-16 items-center px-6">
         <Link href="/" className="flex items-center space-x-2">

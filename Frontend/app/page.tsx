@@ -10,9 +10,9 @@ export default function HomePage() {
   const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
-    // If user is authenticated and not loading, redirect to discover page
+    // If user is authenticated and not loading, redirect to posts feed
     if (isAuthenticated() && !isLoading) {
-      router.push("/discover");
+      router.push("/posts");
     }
   }, [isAuthenticated, isLoading, router]);
 

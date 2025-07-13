@@ -300,7 +300,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       setIsLoading(true);
-      await api.post(AUTH_ENDPOINTS.LOGOUT);
+      const refreshToken = getLocalStorageItem("refresh_token");
+      if (refreshToken) {
+        await api.post(AUTH_ENDPOINTS.LOGOUT, {
+          refresh_token: refreshToken,
+        });
+      } else {
+        // If no refresh token, just make a simple logout call
+        await api.post(AUTH_ENDPOINTS.LOGOUT);
+      }
     } catch (error) {
       console.error("Logout API call failed:", error);
     } finally {

@@ -24,12 +24,12 @@ export interface AuthResponse {
 
 // API Endpoints
 export const AUTH_ENDPOINTS = {
-  LOGIN: '/api/users/login/',
-  REGISTER: '/api/users/register/',
-  LOGOUT: '/api/users/logout/',
-  REFRESH: '/api/users/refresh/',
-  ME: '/api/users/me/',
-  GOOGLE_LOGIN: '/api/users/google/login/',
+  LOGIN: '/users/login/',
+  REGISTER: '/users/register/',
+  LOGOUT: '/users/logout/',
+  REFRESH: '/users/refresh/',
+  ME: '/users/me/',
+  GOOGLE_LOGIN: '/users/google/login/',
 } as const;
 
 // Helper function for Google OAuth redirect

@@ -13,48 +13,109 @@ import Image from "next/image";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/use-toast";
+import { booksApi, postsApi } from "@/lib/api-client";
+import { Book } from "@/lib/api-client";
 
 export default function CreatePostPage() {
   const { user, isLoading: authLoading, isAuthenticated } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  const [selectedBook, setSelectedBook] = useState<any>(null);
+  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [postContent, setPostContent] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<Book[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showResults, setShowResults] = useState(false);
   const [postType, setPostType] = useState<"post" | "review">("post");
   const [rating, setRating] = useState(0);
   const [reviewTitle, setReviewTitle] = useState("");
   const [isLoadingData, setIsLoadingData] = useState(true);
+  const [isCreatingPost, setIsCreatingPost] = useState(false);
 
-  const mockBooks = [
-    {
-      id: 1,
-      title: "The Seven Husbands of Evelyn Hugo",
-      author: "Taylor Jenkins Reid",
-      cover:
-        "http://books.google.com/books/content?id=njVpDQAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
-    },
-    {
-      id: 2,
-      title: "Project Hail Mary",
-      author: "Andy Weir",
-      cover:
-        "http://books.google.com/books/content?id=iEiHEAAAQBAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
-    },
-    {
-      id: 3,
-      title: "Klara and the Sun",
-      author: "Kazuo Ishiguro",
-      cover:
-        "http://books.google.com/books/content?id=SbjrDwAAQBAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
-    },
-  ];
+  // Book search functionality
+  const searchBooks = async (query: string) => {
+    if (query.trim().length < 2) {
+      setSearchResults([]);
+      setShowResults(false);
+      return;
+    }
 
-  const filteredBooks = mockBooks.filter(
-    (book) =>
-      book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      book.author.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+    setIsSearching(true);
+    try {
+      const response = await booksApi.searchBooks(query);
+      setSearchResults(response.data.items || []);
+      setShowResults(true);
+    } catch (error) {
+      console.error("Failed to search books:", error);
+      toast({
+        title: "Error",
+        description: "Failed to search books. Please try again.",
+        variant: "destructive",
+      });
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Debounced search
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      searchBooks(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
+
+  const handleBookSelect = (book: Book) => {
+    setSelectedBook(book);
+    setSearchQuery(book.volumeInfo.title);
+    setShowResults(false);
+  };
+
+  const handleCreatePost = async () => {
+    if (!selectedBook || !postContent.trim()) {
+      toast({
+        title: "Error",
+        description: "Please select a book and write your content.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsCreatingPost(true);
+    try {
+      // Create the post with the Google Books ID
+      const result = await postsApi.createPost({
+        content: postContent,
+        book: selectedBook.id, // This is the Google Books ID
+      });
+
+      toast({
+        title: "Success",
+        description: result.data.message || "Post created successfully!",
+      });
+
+      // Reset form
+      setSelectedBook(null);
+      setPostContent("");
+      setSearchQuery("");
+      setRating(0);
+      setReviewTitle("");
+
+      // Redirect to posts feed
+      router.push("/posts");
+    } catch (error) {
+      console.error("Failed to create post:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create post. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingPost(false);
+    }
+  };
 
   // Simplified auth check useEffect
   useEffect(() => {
@@ -160,18 +221,23 @@ export default function CreatePostPage() {
                 <div className="p-4 border border-[#D9BDF4]/30 rounded-lg bg-[#D9BDF4]/5">
                   <div className="flex items-center space-x-3">
                     <Image
-                      src={selectedBook.cover || "/placeholder.svg"}
-                      alt={selectedBook.title}
+                      src={
+                        selectedBook.volumeInfo.imageLinks?.thumbnail ||
+                        "/placeholder.svg"
+                      }
+                      alt={selectedBook.volumeInfo.title}
                       width={60}
                       height={90}
                       className="rounded-md"
                     />
                     <div className="flex-1">
                       <h3 className="font-semibold text-purple-800">
-                        {selectedBook.title}
+                        {selectedBook.volumeInfo.title}
                       </h3>
                       <p className="text-sm text-purple-600">
-                        by {selectedBook.author}
+                        by{" "}
+                        {selectedBook.volumeInfo.authors?.join(", ") ||
+                          "Unknown Author"}
                       </p>
                     </div>
                     <Button
@@ -186,29 +252,45 @@ export default function CreatePostPage() {
                 </div>
               ) : (
                 <div className="space-y-2 max-h-60 overflow-y-auto">
-                  {filteredBooks.map((book) => (
-                    <div
-                      key={book.id}
-                      className="flex items-center space-x-3 p-3 rounded-lg hover:bg-[#D9BDF4]/10 cursor-pointer transition-colors"
-                      onClick={() => setSelectedBook(book)}
-                    >
-                      <Image
-                        src={book.cover || "/placeholder.svg"}
-                        alt={book.title}
-                        width={40}
-                        height={60}
-                        className="rounded-md"
-                      />
-                      <div>
-                        <p className="font-medium text-sm text-purple-800">
-                          {book.title}
-                        </p>
-                        <p className="text-xs text-purple-600">
-                          by {book.author}
-                        </p>
-                      </div>
+                  {isSearching ? (
+                    <div className="p-4 text-center text-purple-600">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600 mx-auto mb-2"></div>
+                      Searching...
                     </div>
-                  ))}
+                  ) : showResults && searchResults.length > 0 ? (
+                    searchResults.map((book) => (
+                      <div
+                        key={book.id}
+                        className="flex items-center space-x-3 p-3 rounded-lg hover:bg-[#D9BDF4]/10 cursor-pointer transition-colors"
+                        onClick={() => handleBookSelect(book)}
+                      >
+                        <Image
+                          src={
+                            book.volumeInfo.imageLinks?.thumbnail ||
+                            "/placeholder.svg"
+                          }
+                          alt={book.volumeInfo.title}
+                          width={40}
+                          height={60}
+                          className="rounded-md"
+                        />
+                        <div>
+                          <p className="font-medium text-sm text-purple-800">
+                            {book.volumeInfo.title}
+                          </p>
+                          <p className="text-xs text-purple-600">
+                            by{" "}
+                            {book.volumeInfo.authors?.join(", ") ||
+                              "Unknown Author"}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  ) : searchQuery.trim().length >= 2 ? (
+                    <div className="p-4 text-center text-purple-600">
+                      No books found for "{searchQuery}"
+                    </div>
+                  ) : null}
                 </div>
               )}
             </CardContent>
@@ -302,19 +384,25 @@ export default function CreatePostPage() {
               </div>
 
               <div className="flex items-center justify-between pt-4">
-                <Button
-                  variant="outline"
-                  className="border-[#D9BDF4] text-purple-700"
-                >
-                  <ImageIcon className="h-4 w-4 mr-2" />
-                  Add Image
-                </Button>
-
+                {/* Removed Add Image button as image upload is not supported */}
+                <div />
                 <Button
                   className="bg-[#D9BDF4] hover:bg-[#C9A9E4] text-purple-900"
-                  disabled={!selectedBook || !postContent.trim()}
+                  disabled={
+                    !selectedBook || !postContent.trim() || isCreatingPost
+                  }
+                  onClick={handleCreatePost}
                 >
-                  {postType === "post" ? "Share Post" : "Publish Review"}
+                  {isCreatingPost ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-900 mr-2"></div>
+                      Creating...
+                    </>
+                  ) : postType === "post" ? (
+                    "Share Post"
+                  ) : (
+                    "Publish Review"
+                  )}
                 </Button>
               </div>
             </CardContent>
@@ -374,15 +462,20 @@ export default function CreatePostPage() {
 
                   <div className="flex items-center space-x-2 mb-2">
                     <Image
-                      src={selectedBook.cover || "/placeholder.svg"}
-                      alt={selectedBook.title}
+                      src={
+                        selectedBook.volumeInfo.imageLinks?.thumbnail ||
+                        "/placeholder.svg"
+                      }
+                      alt={selectedBook.volumeInfo.title}
                       width={20}
                       height={30}
                       className="rounded-sm"
                     />
                     <span className="text-sm text-purple-600">
                       {postType === "post" ? "posted about" : "reviewed"}{" "}
-                      {selectedBook.title} by {selectedBook.author}
+                      {selectedBook.volumeInfo.title} by{" "}
+                      {selectedBook.volumeInfo.authors?.join(", ") ||
+                        "Unknown Author"}
                     </span>
                   </div>
 
