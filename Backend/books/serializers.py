@@ -13,10 +13,11 @@ class BookSerializer(serializers.ModelSerializer):
         model = Book
         fields = '__all__'
 
-
 class UserBookStatusSerializer(serializers.ModelSerializer):
-    book_title = serializers.CharField(source='book.title', read_only=True)
-
+    book = BookSerializer(read_only=True)
+    book_id = serializers.IntegerField(write_only=True, required=False)
+    
     class Meta:
         model = UserBookStatus
-        fields = ['id', 'book', 'book_title', 'status']
+        fields = ['id', 'book', 'book_id', 'status', 'user']
+        read_only_fields = ['user', 'book']

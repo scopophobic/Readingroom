@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Post
 from django.contrib.auth import get_user_model
+from books.serializers import BookSerializer
 
 User = get_user_model()
 
@@ -11,7 +12,7 @@ class PostCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = self.context['request'].user
-        return Post.objects.create(author=user, **validated_data)
+        return Post.objects.create(user=user, **validated_data)
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -19,7 +20,8 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'email']
 
 class PostSerializer(serializers.ModelSerializer):
-    author = UserSerializer(read_only=True)
+    author = UserSerializer(read_only=True, source='user')
+    book = BookSerializer(read_only=True)
     
     class Meta:
         model = Post
