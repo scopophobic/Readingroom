@@ -36,3 +36,4 @@ uritemplate==4.1.1
 urllib3==2.3.0
 python-dotenv 
 dj-database-url
+django-cors-headers>=4.3.1
