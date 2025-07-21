@@ -31,11 +31,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 
 # well 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ["https://readingroom.vercel.app", "localhost", "127.0.0.1"]
 
 
 # Application definition
@@ -253,6 +253,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Add CORS settings
 CORS_ALLOWED_ORIGINS = [
+    "https://readingroom.vercel.app",
     "http://localhost:3000",  # React development server
     "http://127.0.0.1:3000",  # Alternative React development server
 ]
