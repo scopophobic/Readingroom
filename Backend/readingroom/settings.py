@@ -10,8 +10,16 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+
+import dj_database_url
+import os
+from dotenv import load_dotenv
+
+
 from pathlib import Path
 
+
+load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -99,7 +107,7 @@ SOCIALACCOUNT_PROVIDERS = {
 # ACCOUNT_EMAIL_REQUIRED = True
 # ACCOUNT_USERNAME_REQUIRED = False
 # ACCOUNT_AUTHENTICATION_METHOD = 'email'
-GOOGLE_BOOKS_API_KEY='AIzaSyAkD0-9T7PlfDSWDqDy7cm6ci6m-covRKc'
+GOOGLE_BOOKS_API_KEY=os.getenv('GOOGLE_BOOKS_API_KEY')
 ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 ACCOUNT_EMAIL_VERIFICATION = 'none'  # or 'optional' / 'mandatory' if you want email confirmation
@@ -185,18 +193,22 @@ WSGI_APPLICATION = "readingroom.wsgi.application"
 #     }
 # }
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': 'readingroom',
+#         'USER': 'djangoread',
+#         'PASSWORD': 'readingroom',
+#         'HOST': 'localhost',
+#         'PORT': '5432',
+#     }
+# }
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'readingroom',
-        'USER': 'djangoread',
-        'PASSWORD': 'readingroom',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
+    'default': dj_database_url.config(
+        default=os.getenv('DATABASE_URL')
+    )
 }
-
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
