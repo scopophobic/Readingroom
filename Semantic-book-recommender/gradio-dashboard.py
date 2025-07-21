@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
 from dotenv import load_dotenv
-
-from langchain_community.document_loaders import TextLoader
+import os
+from langchain.document_loaders import TextLoader
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_text_splitters import CharacterTextSplitter
 from langchain.vectorstores import Chroma
@@ -24,10 +24,23 @@ raw_documents = TextLoader("tagged_description.txt", encoding="utf-8").load()
 text_splitter = CharacterTextSplitter(chunk_size=0, chunk_overlap=0, separator="\n")
 documents = text_splitter.split_documents(raw_documents)
 huggingface_embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-db_books = Chroma.from_documents(
-    documents,
-    embedding=huggingface_embeddings
-)
+# Setup persistent vector DB path
+VECTOR_DB_PATH = "./chroma_db"
+
+# If DB already exists, load it. Otherwise, create and persist it.
+if os.path.exists(os.path.join(VECTOR_DB_PATH, "index")):
+    db_books = Chroma(
+        persist_directory=VECTOR_DB_PATH,
+        embedding=huggingface_embeddings
+    )
+else:
+    db_books = Chroma.from_documents(
+        documents,
+        embedding=huggingface_embeddings,
+        persist_directory=VECTOR_DB_PATH
+    )
+
+db_books.persist()
 
 
 def retrieve_semantic_recommendations(
@@ -41,6 +54,7 @@ def retrieve_semantic_recommendations(
     recs = db_books.similarity_search(query, k=initial_top_k)
     books_list = [int(rec.page_content.strip('"').split()[0]) for rec in recs]
     book_recs = books[books["isbn13"].isin(books_list)].head(initial_top_k)
+    
 
     if category !="All":
         book_recs = book_recs[book_recs["simple_categories"] == category].head(final_top_k)
