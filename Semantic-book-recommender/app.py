@@ -3,10 +3,13 @@ import numpy as np
 import os
 from dotenv import load_dotenv
 
+from gradio.themes.utils import fonts
 from langchain_community.document_loaders import TextLoader
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_text_splitters import CharacterTextSplitter
-from langchain.vectorstores import Chroma
+# from langchain.vectorstores import Chroma
+from langchain_community.vectorstores import Chroma
+from langchain_text_splitters import CharacterTextSplitter
 
 import gradio as gr
 
@@ -23,7 +26,12 @@ books["large_thumbnail"] = np.where(
 
 # Load and split documents
 raw_documents = TextLoader("tagged_description.txt", encoding="utf-8").load()
-text_splitter = CharacterTextSplitter(chunk_size=0, chunk_overlap=0, separator="\n")
+# text_splitter = CharacterTextSplitter(chunk_size=0, chunk_overlap=0, separator="\n")
+text_splitter = CharacterTextSplitter(
+    chunk_size=500,
+    chunk_overlap=50,
+    separator="\n"
+)
 documents = text_splitter.split_documents(raw_documents)
 
 # Embedding model
@@ -108,7 +116,14 @@ theme = gr.themes.Soft(
     primary_hue="purple",
     secondary_hue="blue",
     neutral_hue="gray",
-    font=['IBM Plex Sans', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+    # font=['IBM Plex Sans', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+    font=fonts.GoogleFont("IBM Plex Sans")
+    # font=[
+    #     fonts.GoogleFont("IBM Plex Sans"),
+    #     fonts.System("ui-sans-serif"),
+    #     fonts.System("system-ui"),
+    #     fonts.System("sans-serif"),
+    # ],
 )
 
 with gr.Blocks(theme) as dashboard:
