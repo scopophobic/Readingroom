@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Sidebar } from "@/components/sidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -347,10 +346,7 @@ export default function DiscoverPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-purple-50/30 to-[#D9BDF4]/10">
-      <Sidebar />
-
-      <div className="flex-1 max-w-6xl mx-auto p-6">
+    <div className="max-w-6xl mx-auto p-6">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-purple-800 mb-2">
@@ -665,7 +661,6 @@ export default function DiscoverPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
     </div>
   );
 }

@@ -5,6 +5,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/lib/auth-context";
 import { Toaster } from "@/components/ui/toaster";
+import { AppLayout } from "@/components/app-layout";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -30,8 +31,12 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            {children}
-            <Toaster />
+            <div className="min-h-screen bg-gradient-to-br from-purple-50/30 to-[#D9BDF4]/10">
+              <AppLayout>
+                {children}
+              </AppLayout>
+              <Toaster />
+            </div>
           </AuthProvider>
         </ThemeProvider>
       </body>

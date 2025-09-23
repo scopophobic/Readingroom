@@ -23,7 +23,6 @@ import {
   ThumbsDown,
 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
-import { Sidebar } from "@/components/sidebar";
 
 export default function PostsFeed() {
   const { user, isAuthenticated } = useAuth();
@@ -106,9 +105,7 @@ export default function PostsFeed() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-purple-50/30 to-[#D9BDF4]/10">
-      <Sidebar />
-      <div className="flex-1 max-w-6xl mx-auto p-6">
+    <div className="max-w-6xl mx-auto p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -274,7 +271,6 @@ export default function PostsFeed() {
             ))
           )}
         </div>
-      </div>
     </div>
   );
 }
