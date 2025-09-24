@@ -58,7 +58,7 @@ const suggestedUsers = [
 export function TrendingBooks() {
   return (
     <div className="space-y-6">
-      {/* Trending Books */}
+      {/* Trending Books - Only section kept */}
       <Card className="border-[#D9BDF4]/20 bg-gradient-to-br from-[#D9BDF4]/5 to-purple-50/30">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center text-purple-800">
@@ -95,50 +95,6 @@ export function TrendingBooks() {
           <Button variant="outline" size="sm" className="w-full border-[#D9BDF4] text-purple-700 hover:bg-[#D9BDF4]/10">
             View All Trending
           </Button>
-        </CardContent>
-      </Card>
-
-      {/* Quick Stats */}
-      <Card className="border-[#D9BDF4]/20 bg-gradient-to-br from-purple-50/50 to-[#D9BDF4]/5">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg text-purple-800">Your Reading Journey</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex justify-between items-center p-2 rounded-lg bg-[#D9BDF4]/10">
-            <span className="text-sm text-purple-700">Books Read</span>
-            <span className="font-semibold text-purple-800">23</span>
-          </div>
-          <div className="flex justify-between items-center p-2 rounded-lg bg-[#D9BDF4]/10">
-            <span className="text-sm text-purple-700">Reviews Written</span>
-            <span className="font-semibold text-purple-800">18</span>
-          </div>
-          <div className="flex justify-between items-center p-2 rounded-lg bg-[#D9BDF4]/10">
-            <span className="text-sm text-purple-700">Posts Created</span>
-            <span className="font-semibold text-purple-800">42</span>
-          </div>
-          <div className="flex justify-between items-center p-2 rounded-lg bg-[#D9BDF4]/10">
-            <span className="text-sm text-purple-700">Followers</span>
-            <span className="font-semibold text-purple-800">156</span>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Reading Goal */}
-      <Card className="border-[#D9BDF4]/20 bg-gradient-to-br from-[#D9BDF4]/10 to-purple-100/30">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg text-purple-800">2024 Reading Goal</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-purple-700">Progress</span>
-              <span className="text-purple-800 font-medium">23/50 books</span>
-            </div>
-            <div className="w-full bg-purple-100 rounded-full h-2">
-              <div className="bg-[#D9BDF4] h-2 rounded-full" style={{ width: "46%" }}></div>
-            </div>
-            <p className="text-xs text-purple-600 text-center mt-2">You're doing great! Keep it up! 📚</p>
-          </div>
         </CardContent>
       </Card>
     </div>

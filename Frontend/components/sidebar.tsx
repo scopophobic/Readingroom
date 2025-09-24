@@ -25,7 +25,7 @@ const navigation = [
   { name: "Home", icon: Home, href: "/" },
   { name: "Posts", icon: MessageCircle, href: "/posts" },
   { name: "Discover", icon: Search, href: "/discover" },
-  { name: "AI Recommendations", icon: Sparkles, href: "/ai-recommendations" },
+  { name: "AI Recomms", icon: Sparkles, href: "/ai-recommendations" },
   // { name: "Trending", icon: TrendingUp, href: "/trending" },
   // { name: "Discussions", icon: MessageCircle, href: "http://localhost:5173" },
   // { name: "Lists", icon: MessageCircle, href: "/lists" },
@@ -40,6 +40,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const { user, logout, isLoading } = useAuth();
   const { toast } = useToast();
+
 
   const handleLogout = async () => {
     try {
@@ -60,35 +61,134 @@ export function Sidebar() {
   const navItems = user ? authenticatedNavigation : navigation;
 
   return (
-    <div className="fixed top-0 left-0 h-screen w-64 flex flex-col border-r bg-card z-40 shadow-lg">
-      {/* Logo */}
-      <div className="flex h-16 items-center px-6">
-        <Link href="/" className="flex items-center space-x-2">
-          <BookOpen className="h-8 w-8 text-primary" />
-          <span className="text-xl font-bold">Reading Room</span>
-        </Link>
-      </div>
-
-      <Separator />
-
-      {/* Create Post Button - Only show when authenticated */}
-      {user && (
-        <div className="p-4">
-          <Link href="/create-post">
-            <Button
-              className="w-full bg-[#D9BDF4] hover:bg-[#C9A9E4] text-purple-900"
-              size="sm"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Create Post
-            </Button>
+    <div className="
+      /* Desktop: Fixed left sidebar */
+      md:fixed md:top-0 md:left-0 md:h-screen md:w-64 md:flex-col md:border-r md:shadow-lg
+      /* Mobile: Fixed bottom navigation */
+      fixed bottom-0 left-0 right-0 h-16 w-full border-t flex-row
+      /* Common styles */
+      bg-card z-40 flex
+    ">
+      {/* Desktop Layout */}
+      <div className="hidden md:flex md:flex-col md:w-full md:h-full">
+        {/* Logo */}
+        <div className="flex h-16 items-center px-6">
+          <Link href="/" className="flex items-center space-x-2">
+            <BookOpen className="h-8 w-8 text-primary" />
+            <span className="text-xl font-bold">Reading Room</span>
           </Link>
         </div>
-      )}
 
-      {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-3">
-        {navItems.map((item) => {
+        <Separator />
+
+        {/* Create Post Button - Only show when authenticated */}
+        {user && (
+          <div className="p-4">
+            <Link href="/create-post">
+              <Button
+                className="w-full bg-[#D9BDF4] hover:bg-[#C9A9E4] text-purple-900"
+                size="sm"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Create Post
+              </Button>
+            </Link>
+          </div>
+        )}
+
+        {/* Navigation */}
+        <nav className="flex-1 space-y-1 px-3">
+          {navItems.map((item) => {
+            const isActive =
+              pathname === item.href ||
+              (item.href !== "/" && pathname.startsWith(item.href));
+
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={cn(
+                  "flex w-full items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                )}
+              >
+                <item.icon className="mr-3 h-4 w-4" />
+                {item.name}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <Separator />
+
+        {/* User Profile or Auth Buttons */}
+        <div className="p-4">
+          {isLoading ? (
+            <div className="flex items-center space-x-3">
+              <Avatar className="h-8 w-8">
+                <AvatarFallback>...</AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium">Loading...</p>
+              </div>
+            </div>
+          ) : user ? (
+            <div className="space-y-2">
+              <Link
+                href="/profile"
+                className="flex items-center space-x-3 hover:bg-accent rounded-lg p-2 transition-colors"
+              >
+                <Avatar className="h-8 w-8">
+                  <AvatarImage
+                    src={`https://api.dicebear.com/7.x/initials/svg?seed=${user.username}`}
+                    alt={user.username}
+                  />
+                  <AvatarFallback>
+                    {user.username.slice(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{user.username}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {user.email}
+                  </p>
+                </div>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </Link>
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-muted-foreground hover:text-destructive"
+                onClick={handleLogout}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Link href="/auth/login">
+                <Button variant="ghost" className="w-full justify-start">
+                  <LogIn className="mr-2 h-4 w-4" />
+                  Sign In
+                </Button>
+              </Link>
+              <Link href="/auth/register">
+                <Button className="w-full bg-[#D9BDF4] hover:bg-[#C9A9E4] text-purple-900">
+                  Create Account
+                </Button>
+              </Link>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile Layout - Bottom Navigation */}
+      <div className="flex md:hidden w-full items-center justify-around h-16 px-2">
+        {navItems.slice(0, 4).map((item) => {
           const isActive =
             pathname === item.href ||
             (item.href !== "/" && pathname.startsWith(item.href));
@@ -98,80 +198,40 @@ export function Sidebar() {
               key={item.name}
               href={item.href}
               className={cn(
-                "flex w-full items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                "flex flex-col items-center justify-center p-2 rounded-lg min-w-0 flex-1 transition-colors",
                 isActive
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-accent-foreground"
               )}
             >
-              <item.icon className="mr-3 h-4 w-4" />
-              {item.name}
+              <item.icon className="h-5 w-5 mb-1" />
+              <span className="text-xs truncate">{item.name}</span>
             </Link>
           );
         })}
-      </nav>
 
-      <Separator />
-
-      {/* User Profile or Auth Buttons */}
-      <div className="p-4">
-        {isLoading ? (
-          <div className="flex items-center space-x-3">
-            <Avatar className="h-8 w-8">
-              <AvatarFallback>...</AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium">Loading...</p>
-            </div>
-          </div>
-        ) : user ? (
-          <div className="space-y-2">
-            <Link
-              href="/profile"
-              className="flex items-center space-x-3 hover:bg-accent rounded-lg p-2 transition-colors"
-            >
-              <Avatar className="h-8 w-8">
-                <AvatarImage
-                  src={`https://api.dicebear.com/7.x/initials/svg?seed=${user.username}`}
-                  alt={user.username}
-                />
-                <AvatarFallback>
-                  {user.username.slice(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{user.username}</p>
-                <p className="text-xs text-muted-foreground truncate">
-                  {user.email}
-                </p>
-              </div>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <Settings className="h-4 w-4" />
-              </Button>
-            </Link>
-            <Button
-              variant="ghost"
-              className="w-full justify-start text-muted-foreground hover:text-destructive"
-              onClick={handleLogout}
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Logout
-            </Button>
-          </div>
+        {/* Mobile Profile/Auth */}
+        {user ? (
+          <Link
+            href="/profile"
+            className={cn(
+              "flex flex-col items-center justify-center p-2 rounded-lg min-w-0 flex-1 transition-colors",
+              pathname === "/profile"
+                ? "text-primary"
+                : "text-muted-foreground hover:text-accent-foreground"
+            )}
+          >
+            <User className="h-5 w-5 mb-1" />
+            <span className="text-xs truncate">Profile</span>
+          </Link>
         ) : (
-          <div className="space-y-2">
-            <Link href="/auth/login">
-              <Button variant="ghost" className="w-full justify-start">
-                <LogIn className="mr-2 h-4 w-4" />
-                Sign In
-              </Button>
-            </Link>
-            <Link href="/auth/register">
-              <Button className="w-full bg-[#D9BDF4] hover:bg-[#C9A9E4] text-purple-900">
-                Create Account
-              </Button>
-            </Link>
-          </div>
+          <Link
+            href="/auth/login"
+            className="flex flex-col items-center justify-center p-2 rounded-lg min-w-0 flex-1 text-muted-foreground hover:text-accent-foreground transition-colors"
+          >
+            <LogIn className="h-5 w-5 mb-1" />
+            <span className="text-xs truncate">Login</span>
+          </Link>
         )}
       </div>
     </div>

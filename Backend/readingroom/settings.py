@@ -313,10 +313,9 @@ LOGGING = {
 
 # Add CORS settings
 CORS_ALLOWED_ORIGINS = [
-    "https://readingroom.vercel.app",
+    "https://readingroom.vercel.app",  # Frontend deployed on Vercel
     "http://localhost:3000",  # React development server
-    "http://127.0.0.1:3000",
-    "readingroom-kajc.onrender.com"  # Alternative React development server
+    "http://127.0.0.1:3000",  # Alternative React development server
 ]
 
 CORS_ALLOW_CREDENTIALS = True

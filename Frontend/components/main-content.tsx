@@ -37,7 +37,7 @@ export function MainContent() {
   return (
     <div className="flex-1 flex">
       {/* Main Feed */}
-      <div className="flex-1 max-w-2xl mx-auto">
+      <div className="flex-1 lg:max-w-2xl mx-auto">
         <FeedHeader />
 
         <div className="space-y-6 p-6">
@@ -148,8 +148,8 @@ export function MainContent() {
         </div>
       </div>
 
-      {/* Right Sidebar */}
-      <div className="w-80 p-6 border-l bg-card/30 backdrop-blur-sm">
+      {/* Right Sidebar - Only show on large screens (desktop) */}
+      <div className="hidden lg:block w-80 p-6 border-l bg-card/30 backdrop-blur-sm">
         <TrendingBooks />
       </div>
     </div>
