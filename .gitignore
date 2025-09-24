@@ -10,3 +10,7 @@ Frontend/.vscode
 Frontend/.idea
 Frontend/.DS_Store
 Frontend/*.suo
+
+Frontend/.next
+
+trash/

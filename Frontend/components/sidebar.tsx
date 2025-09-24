@@ -12,6 +12,7 @@ import {
   Plus,
   LogOut,
   LogIn,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -24,9 +25,9 @@ const navigation = [
   { name: "Home", icon: Home, href: "/" },
   { name: "Posts", icon: MessageCircle, href: "/posts" },
   { name: "Discover", icon: Search, href: "/discover" },
+  { name: "AI Recommendations", icon: Sparkles, href: "/ai-recommendations" },
   // { name: "Trending", icon: TrendingUp, href: "/trending" },
-  { name: "AI Recommender", icon: BookOpen, href: "http://127.0.0.1:7860" },
-  { name: "Discussions", icon: MessageCircle, href: "http://localhost:5173" },
+  // { name: "Discussions", icon: MessageCircle, href: "http://localhost:5173" },
   // { name: "Lists", icon: MessageCircle, href: "/lists" },
 ];
 
