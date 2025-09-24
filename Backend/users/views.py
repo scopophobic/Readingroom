@@ -1,4 +1,4 @@
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from .models import User
 from .serializers import UserRegisterSerializer, UserProfileSerializer
@@ -10,6 +10,27 @@ class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserRegisterSerializer
     permission_classes = [AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        # Create the user
+        user = serializer.save()
+        
+        # Generate JWT tokens for the new user
+        refresh = RefreshToken.for_user(user)
+        access = refresh.access_token
+        
+        # Return user data along with tokens
+        user_serializer = UserProfileSerializer(user)
+        
+        return Response({
+            'access': str(access),
+            'refresh': str(refresh),
+            'user': user_serializer.data,
+            'message': 'User registered successfully'
+        }, status=status.HTTP_201_CREATED)
 
 class MeView(APIView):
     permission_classes = [IsAuthenticated]

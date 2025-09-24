@@ -334,38 +334,64 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = async (credentials: RegisterCredentials) => {
     try {
       setIsLoading(true);
-      // Update to use the correct register endpoint
+      console.log("Registration attempt with:", { ...credentials, password: "[REDACTED]" });
+      
       const response = await api.post(AUTH_ENDPOINTS.REGISTER, credentials);
+      console.log("Registration response:", response.data);
 
       if (response.data.access) {
-        // Store the tokens
-        localStorage.setItem("access_token", response.data.access);
+        // Store the tokens using our helper functions
+        setAuthToken(response.data.access);
         if (response.data.refresh) {
           localStorage.setItem("refresh_token", response.data.refresh);
+          setHasRefreshToken(true);
         }
+        setHasToken(true);
 
-        // Set the authorization header
-        api.defaults.headers.common[
-          "Authorization"
-        ] = `Bearer ${response.data.access}`;
-
-        // Fetch user data
-        const userResponse = await api.get(AUTH_ENDPOINTS.ME);
-        setUser(userResponse.data);
+        // Use user data from registration response if available
+        if (response.data.user) {
+          console.log("Setting user from registration response:", response.data.user);
+          setUser(response.data.user);
+        } else {
+          // Fallback: fetch user data separately
+          const userResponse = await api.get(AUTH_ENDPOINTS.ME);
+          setUser(userResponse.data);
+        }
 
         router.push("/");
         toast({
           title: "Success",
-          description: "Successfully registered",
+          description: "Welcome! Your account has been created successfully.",
         });
       } else {
         throw new Error("No access token in response");
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Registration failed:", error);
+      
+      let errorMessage = "Failed to register. Please try again.";
+      if (axios.isAxiosError(error) && error.response) {
+        console.error("Registration error response:", error.response.data);
+        console.error("Registration error status:", error.response.status);
+        
+        // Handle specific error messages from backend
+        if (error.response.data && typeof error.response.data === 'object') {
+          const errors = error.response.data;
+          if (errors.username) {
+            errorMessage = `Username: ${errors.username[0]}`;
+          } else if (errors.email) {
+            errorMessage = `Email: ${errors.email[0]}`;
+          } else if (errors.password) {
+            errorMessage = `Password: ${errors.password[0]}`;
+          } else if (errors.non_field_errors) {
+            errorMessage = errors.non_field_errors[0];
+          }
+        }
+      }
+      
       toast({
-        title: "Error",
-        description: "Failed to register. Please try again.",
+        title: "Registration Error",
+        description: errorMessage,
         variant: "destructive",
       });
       throw error;

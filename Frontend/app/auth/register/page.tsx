@@ -38,12 +38,10 @@ export default function RegisterPage() {
         email: formData.email,
         password: formData.password,
       });
-      toast({
-        title: "Success",
-        description: "Account created successfully",
-      });
-      router.push("/auth/login");
+      // Registration success - user is now logged in automatically
+      // The register function in auth-context will handle the redirect
     } catch (error) {
+      console.error("Registration error:", error);
       toast({
         title: "Error",
         description: "Failed to create account. Please try again.",

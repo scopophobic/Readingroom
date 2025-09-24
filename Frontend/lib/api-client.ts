@@ -284,7 +284,7 @@ export const commentsApi = {
 // Auth API
 export const authApi = {
   // Register a new user
-  register: async (credentials: { email: string; password: string; password2: string }): Promise<ApiResponse<any>> => {
+  register: async (credentials: { username: string; email: string; password: string }): Promise<ApiResponse<any>> => {
     const response = await api.post('/users/register/', credentials);
     return { data: response.data, status: response.status };
   },
