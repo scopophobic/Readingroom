@@ -35,7 +35,7 @@ DEBUG = False
 
 
 # well 
-ALLOWED_HOSTS = ["https://readingroom.vercel.app", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["https://readingroom.vercel.app", "localhost", "127.0.0.1","readingroom-kajc.onrender.com"]
 
 
 # Application definition
