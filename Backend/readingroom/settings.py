@@ -14,8 +14,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import dj_database_url
 import os
 from dotenv import load_dotenv
-
-
+from datetime import timedelta
 from pathlib import Path
 
 
@@ -53,7 +52,6 @@ INSTALLED_APPS = [
     #i added 
     'rest_framework',
     'rest_framework_simplejwt',
-    'rest_framework_simplejwt.token_blacklist',
 
 
     # 'rest_framework',
@@ -135,14 +133,12 @@ REST_FRAMEWORK = {
 }
 
 # JWT Settings
-from datetime import timedelta
-
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),  # Extended from default 5 minutes
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),  # 7 days
-    'ROTATE_REFRESH_TOKENS': True,  # Generate new refresh token on each refresh
-    'BLACKLIST_AFTER_ROTATION': True,  # Blacklist old refresh tokens
-    'UPDATE_LAST_LOGIN': True,  # Update last login time on token refresh
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': False,  # Temporarily disable rotation to avoid blacklist issues
+    'BLACKLIST_AFTER_ROTATION': False,  # Temporarily disable blacklisting
+    'UPDATE_LAST_LOGIN': True,
     
     'ALGORITHM': 'HS256',
     'SIGNING_KEY': SECRET_KEY,
@@ -163,9 +159,6 @@ SIMPLE_JWT = {
     'TOKEN_USER_CLASS': 'rest_framework_simplejwt.models.TokenUser',
 
     'JTI_CLAIM': 'jti',
-    'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
-    'SLIDING_TOKEN_LIFETIME': timedelta(hours=1),
-    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
 
 SPECTACULAR_SETTINGS = {

@@ -55,12 +55,13 @@ api.interceptors.response.use(
           );
 
           const newAccessToken = refreshResponse.data.access;
-          const newRefreshToken = refreshResponse.data.refresh; // In case of token rotation
+          const newRefreshToken = refreshResponse.data.refresh; // Optional - only if rotation is enabled
 
           if (newAccessToken) {
             // Update stored tokens
             localStorage.setItem('access_token', newAccessToken);
-            if (newRefreshToken) {
+            // Only update refresh token if we received a new one (token rotation)
+            if (newRefreshToken && newRefreshToken !== refreshToken) {
               localStorage.setItem('refresh_token', newRefreshToken);
             }
 

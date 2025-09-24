@@ -1,0 +1,12 @@
+LOGIN_FIX_DEPLOYMENT_GUIDE.md
+Backend/.env
+Frontend/.env.local
+Frontend/.env
+Frontend/node_modules
+Frontend/dist
+Frontend/dist-ssr
+Frontend/*.local
+Frontend/.vscode
+Frontend/.idea
+Frontend/.DS_Store
+Frontend/*.suo
