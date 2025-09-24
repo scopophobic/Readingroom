@@ -171,12 +171,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               });
 
               const newToken = refreshResponse.data.access;
+              const newRefreshToken = refreshResponse.data.refresh; // Handle token rotation
+              
               if (!newToken) {
                 throw new Error("No access token in refresh response");
               }
 
               console.log("Auth Context - Token refreshed successfully");
               localStorage.setItem("access_token", newToken);
+              
+              // Update refresh token if rotated
+              if (newRefreshToken) {
+                localStorage.setItem("refresh_token", newRefreshToken);
+              }
+              
               setAuthToken(newToken);
 
               // Retry the user data fetch with new token
@@ -424,9 +432,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             refresh: refreshToken,
           });
           const newToken = refreshResponse.data.access;
+          const newRefreshToken = refreshResponse.data.refresh; // Handle token rotation
+          
           if (newToken) {
             console.log("Auth Context - Token refreshed");
             localStorage.setItem("access_token", newToken);
+            
+            // Update refresh token if rotated
+            if (newRefreshToken) {
+              localStorage.setItem("refresh_token", newRefreshToken);
+            }
+            
             setAuthToken(newToken);
             const retryResponse = await api.get(AUTH_ENDPOINTS.ME);
             if (retryResponse.data && retryResponse.data.id) {
